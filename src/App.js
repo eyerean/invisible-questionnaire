@@ -39,7 +39,7 @@ const App = ()  => {
     dispatch({type: 'clear_state'});
     const places = inputValue.split(',').map((word) => word.trim());
     places.forEach(place => {
-      dispatch({type: 'add_city', payload: {city: place, temp: undefined, error: undefined }})
+      dispatch({type: 'add_city', payload: {city: place, temp: undefined, time: undefined, error: undefined }})
       handleFetchWoeid(place);
     })
   }
@@ -49,27 +49,28 @@ const App = ()  => {
       .then((response) => {
         if(response.data.length === 0){
             // no cities found
-            dispatch({type: 'update_city', payload: {city, temp: undefined, error: 'No cities found with that name' }});
+            dispatch({type: 'update_city', payload: {city, temp: undefined, time: undefined, error: 'No cities found with that name' }});
         } else if(response.data.length === 1){
         // one city found
         const id = response.data[0].woeid;
         if(id){
             axiosInstance.get(`/location/${id}`).then((res) => {
               const currTemp = res.data.consolidated_weather[0].the_temp;
-              dispatch({type: 'update_city', payload: {city, temp: Math.round(currTemp), error: undefined }});
+              const currTime = res.data.time;
+              dispatch({type: 'update_city', payload: {city, temp: Math.round(currTemp), time: currTime,  error: undefined }});
               }).catch((error) => {
                 // weather info not found
-                dispatch({type: 'update_city', payload: {city, temp: undefined, error: 'Weather info could not be fetched' }});
+                dispatch({type: 'update_city', payload: {city, temp: undefined, time: undefined, error: 'Weather info could not be fetched' }});
               })
             }
           }else {
             // more than one cities found
-            dispatch({type: 'update_city', payload: {city, temp: undefined, error: 'More than one cities found with that name' }});
+            dispatch({type: 'update_city', payload: {city, temp: undefined, time: undefined, error: 'More than one cities found with that name' }});
           }
         })
         .catch((error) => {
           // city not found
-          dispatch({type: 'update_city', payload: {city, temp: undefined, error: 'Error fetching city' }});
+          dispatch({type: 'update_city', payload: {city, temp: undefined, time: undefined, error: 'Error fetching city' }});
     })
   }
 
@@ -83,6 +84,7 @@ const App = ()  => {
         <div key={loc.city} className="cities">
           <p>City: {loc.city}</p>
           <p>Current Temperature: {loc.error ? loc.error : loc.temp ? `${loc.temp} °C` : 'loading...'}</p>
+          <p>Current Time: {loc.error ? '-' : loc.time ? `${loc.time}` : 'loading...'}</p>
           <hr />
         </div>
         )}
